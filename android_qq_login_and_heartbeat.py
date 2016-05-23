@@ -94,15 +94,29 @@ class QQ(EnvandDevice, TLV):  # every qq has an env and device attached
         print bytearray_to_hex_string(data)
         data = self.unpack( data )
         return data
+
+    def un_pack(self, data):
+        data = bytearray(data)
+        print bytearray_to_hex_string(data)
+        qq_pos = data.find(self.username)
+
+        remain = data[qq_pos+len(self.username):len(data)]
+        #print bytearray_to_hex_string(remain)
+        return remain
         
     def login(self):
         login_packet = self.pack_login()
         self.con.send( login_packet )
         print 'login packet sent'
+
         data = self.con.recv(1024)
         print 'login packet response received'
-        data = bytearray(data)
-        print bytearray_to_hex_string(data)
+        remain=self.un_pack(data)
+        print bytearray_to_hex_string(remain)
+
+        #TODO decrypt failed
+        decrypt_data=tea.decrypt(remain, self.sharekey)
+        print bytearray_to_hex_string(decrypt_data)
 
     def pack_pc(self, cmd, b, randkey, pubkey):
         # 02
@@ -231,7 +245,7 @@ def main():
     logging.basicConfig(level=logging.DEBUG,
                         datefmt='%a, %d %b %Y %H:%M:%S'
                        )
-    qq = QQ('602', '6a')
+    qq = QQ('2373220602', '31415926a')
     qq.login()
 
 if __name__=='__main__':
